@@ -1,0 +1,249 @@
+* {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none; 
+}
+
+.hide {
+    display: "none" !important;
+}
+
+.show {
+    display: "block" !important;
+}
+
+.flex {
+    display: "flex" !important;
+}
+
+.grid {
+    display: "grid" !important;
+}
+
+.visibilidad {
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.ocultar_li {
+    pointer-events: none;
+    visibility: hidden;
+    height: 0px;
+	margin: 0;
+	padding: 0;
+}
+
+.pointer {
+    pointer-events: none;
+}
+
+.atencion,
+.total_a_cobrar {
+    color: #ff0000 !important;
+    font-weight: bold;
+}
+
+.infoBotton{
+    font-weight: bold;
+    cursor: pointer;
+    background-color: rgb(223, 223, 223);
+    background-color: var(--third-color);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    text-align: center;
+}
+
+.infoBotton:hover {
+    background-color: hsl(0, 0%, 0%, 20%);
+    background-color: var(--third-hover-color);
+}
+
+.gm-style-iw-d > div{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.table-data-scroll__content > p{
+    text-align: left;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+.table-data-scroll__content li{
+  text-align: left;
+}
+
+
+/* CSS PARA AJUSTAR ^^ */
+.table__hidden-list li {
+    font-weight: bold;
+    margin-top: 3px;
+}
+
+.table__hidden-list li span {
+    font-weight: normal;
+}
+
+.table-data,
+.table__data {
+  padding: 4px;
+}
+
+.indice {
+    padding-left: 3px;
+}
+
+.minimap .form-grid__container {
+    position: absolute;
+    z-index: 999999999;
+    left: 10px;
+    top: 30px;
+}
+
+.minimap .form-grid__container li {
+    border: 1px solid #000;
+    border-radius: 10px;
+}
+
+.minimap .form-grid__container li li {
+    border: none;
+}
+
+.minimap .form-grid__container {
+    height: auto;
+}
+
+.minimap .form-grid__container .generic-btn__text {
+    font-size: 18px;
+}
+
+.scroll-container {
+    overflow-y: hidden;
+}
+
+#chat_window_messages b,
+.chat-list__text-info b {
+    font-size: 1.1em;
+}
+
+.chat-window-message-text {
+    display: inline-block;
+    line-height: 18px;
+}
+
+.chat-window-message-text i {
+    margin-bottom: 5px;
+    font-size: .8em;
+    display: block;
+}
+
+.chat-window-message-text a {
+    font-style: italic;
+    font-weight: bold;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.chat-window-message-text a:hover {
+    color: red;
+}
+
+/* -------------------------------------------------- */
+/* -------------------------------------------------- */
+
+td[data-col="cedula"] div span,
+td[data-col="limite_prestamo"] div span,
+td[data-col="monto"] div span,
+td[data-col="sumatoria"] div span,
+td[data-col="suma_cuotas_pagadas"] div span,
+td[data-col="suma_abonos_cancelados"] div span,
+td[data-col="total_con_interes"] div span,
+td[data-col="inyeccion"] div span,
+td[data-col="base_dia"] div span,
+td[data-col="capital"] div span,
+td[data-col="total_a_cobrar"] div span,
+td[data-col="monto_prestado"] div span,
+td[data-col="monto_diario"] div span,
+td[data-col="total_cuotas"] div span,
+td[data-col="total_abonos"] div span,
+td[data-col="total_cancelado"] div span,
+td[data-col="abonos_realizados"] div span,
+td[data-col="cuotas_pagadas"] div span,
+td[data-col="distancia"] div span {
+    width: 100%;
+    text-align: right;
+    padding-right: 2px;
+    white-space: nowrap;
+}
+
+td[data-col="nombre"] div span,
+td[data-col="nombre_completo"] div span,
+td[data-col="nombre_completo_cliente"] div span,
+td[data-col="nombre_completo_cobrador"] div span,
+td[data-col="telefono"] div span {
+    width: 100%;
+    text-align: left;
+    padding-left: 2px;
+}
+
+td[data-col="posicionar"] div.select-nav-container.form-grid-nav-container ul li{
+    justify-content: start;
+    padding-left: 5px;
+}
+
+span[id^="iden__total_gastos"],
+span[id^="iden__inyeccion"],
+span[id^="iden__base_dia"],
+span[id^="iden__capital"] {
+    text-decoration: underline;
+    color: #2e00ff;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+section[data-link="reporte"] div.scroll-container {
+    overflow-y: scroll !important;
+}
+
+section[data-form="S"] div.scroll-container{
+    overflow-y: scroll !important;
+}
+
+.main-view {
+	height: CALC( 100vh - 70PX ) !important;
+    overflow-y: scroll !important;;
+}
+
+.click_logo {
+	cursor: pointer;
+}
+
+section[data-link='reporte_clon'] div.modal__title img,
+section[data-link='reporte'] div.modal__title img {
+    cursor: pointer;
+    margin-left: 20px;
+    width: 40px;
+    height: 40px;
+}
+
+.exitSystem img,
+.refreshPage img{
+	width: 20px;
+	height: 20px;
+	cursor: pointer;
+}
+
+.numero {
+	position: absolute;
+	top: 0;
+	right: 0;
+	border-radius: 50%;
+	background: #3bb2d578;
+	font-size: 0.55em;
+	padding: 4px;
+	font-weight: bold;
+}
