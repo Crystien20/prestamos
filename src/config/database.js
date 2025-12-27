@@ -2,11 +2,11 @@
 const mysql = require('mysql2/promise');
 
 const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT) || 3306,
-    database: process.env.DB_NAME || 'brksoft_brksoftware',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'Nataly.1003*',
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT),
+    database: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
     waitForConnections: true,
     connectionLimit: 20,
     queueLimit: 100,

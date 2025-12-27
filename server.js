@@ -1,4 +1,4 @@
-// server.js - CON ORDEN CORRECTO
+// server.js - VERSIÓN COMPLETA CON RUTAS CSS/JS CORREGIDAS
 require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
@@ -82,46 +82,44 @@ app.use('/api/auth/login', loginLimiter);
 app.use('/api/', apiLimiter);
 
 // ===========================================
-// MANEJO DE RUTAS .well-known (IMPORTANTE: ANTES del logger)
+// MANEJO DE RUTAS .well-known
 // ===========================================
 app.get('/.well-known/*', (req, res) => {
-    // Responder con 204 (No Content) silenciosamente
-    // Esto evita que Chrome y otros servicios vean errores 404
     res.status(204).end();
 });
 
 // ===========================================
-// SERVIR ARCHIVOS ESTÁTICOS
+// SERVIR ARCHIVOS ESTÁTICOS (RUTAS CORRECTAS PARA CSS/JS)
 // ===========================================
 app.use(express.static(path.join(__dirname, 'public'), {
     maxAge: '1d',
     index: false,
-    setHeaders: (res, path) => {
-        if (path.endsWith('.html')) {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
             res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         }
     }
 }));
 
-app.use('/assets', express.static(path.join(__dirname, 'public/assets'), {
-    maxAge: '7d'
-}));
+console.log('✅ Archivos estáticos servidos desde: public/');
+console.log('✅ CSS servidos desde: public/css/');
+console.log('✅ JS servidos desde: public/js/');
+console.log('✅ Assets servidos desde: public/assets/');
 
 // ===========================================
-// LOGGER DE PRODUCCIÓN (OPTIMIZADO)
+// LOGGER DE PRODUCCIÓN
 // ===========================================
 app.use((req, res, next) => {
     const start = Date.now();
     const originalUrl = req.originalUrl;
     
-    // RUTAS QUE IGNORAMOS COMPLETAMENTE (ni siquiera entran al logger)
+    // RUTAS QUE IGNORAMOS COMPLETAMENTE
     const silentPaths = [
-        '/.well-known/',           // Ya manejado arriba, pero por si acaso
+        '/.well-known/',
         '/favicon.ico',
         '/robots.txt'
     ];
     
-    // Si es una ruta silenciosa, solo pasamos
     if (silentPaths.some(path => originalUrl.startsWith(path))) {
         return next();
     }
@@ -143,15 +141,14 @@ app.use((req, res, next) => {
         '.ico'
     ];
     
-    const isQuietPath = quietPaths.some(path => 
-        originalUrl.startsWith(path) || originalUrl.endsWith(path)
+    const isQuietPath = quietPaths.some(quietPath => 
+        originalUrl.startsWith(quietPath) || originalUrl.endsWith(quietPath)
     );
     
     res.on('finish', () => {
         const duration = Date.now() - start;
         const status = res.statusCode;
         
-        // Solo loggear si no es ruta silenciosa
         if (!silentPaths.some(path => originalUrl.startsWith(path))) {
             
             const timestamp = new Date().toISOString();
@@ -184,10 +181,6 @@ app.use((req, res, next) => {
                 if (originalUrl === '/dashboard') {
                     console.log(`   👤 Dashboard acceso desde: ${ip}`);
                 }
-            } 
-            // Log minimalista para assets
-            else if (process.env.LOG_ASSETS === 'true') {
-                console.log(`📦 ${duration}ms | ${originalUrl}`);
             }
         }
     });
@@ -236,7 +229,12 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         environment: 'production',
-        database: process.env.DB_NAME ? 'configured' : 'not-configured'
+        database: process.env.DB_NAME ? 'configured' : 'not-configured',
+        paths: {
+            css: '/css/',
+            js: '/js/',
+            assets: '/assets/'
+        }
     });
 });
 
@@ -272,7 +270,13 @@ app.use((req, res) => {
     res.status(404).json({
         success: false,
         message: 'Ruta no encontrada',
-        path: req.originalUrl
+        path: req.originalUrl,
+        availablePaths: {
+            home: '/',
+            dashboard: '/dashboard',
+            health: '/health',
+            apiTest: '/api/test'
+        }
     });
 });
 
@@ -319,6 +323,8 @@ const startServer = async () => {
             console.log(`📊 API Health: http://localhost:${PORT}/health`);
             console.log(`🔧 API Test: http://localhost:${PORT}/api/test`);
             console.log(`🗄️  Base de datos: ${process.env.DB_NAME}`);
+            console.log(`📁 Rutas CSS: http://localhost:${PORT}/css/`);
+            console.log(`📁 Rutas JS: http://localhost:${PORT}/js/`);
             console.log(`🕐 Inicio: ${new Date().toISOString()}`);
             console.log('='.repeat(50) + '\n');
         });

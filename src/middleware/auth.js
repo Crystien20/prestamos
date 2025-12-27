@@ -1,7 +1,7 @@
 // src/middleware/auth.js
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'brk_software_secret_key_2023';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 async function authenticate(req, res, next) {
     try {

@@ -2,8 +2,8 @@
 const jwt = require('jsonwebtoken');
 const database = require('../config/database');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'brk_software_secret_key_2023';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
 
 class AuthController {
     async login(req, res) {
