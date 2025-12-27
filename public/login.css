@@ -1,0 +1,723 @@
+/* =========================================== */
+/* VARIABLES CSS - ÚNICA DEFINICIÓN */
+/* =========================================== */
+:root {
+    /* Paleta de colores */
+    --primary-color: #2ac294;
+    --primary-dark: #007751;
+    --secondary-color: #1a98ff;
+    --secondary-hover: #5bb5ff;
+    --accent-color: #4cc9f0;
+    --accent-secondary: #4361ee;
+    
+    /* Fondos */
+    --bg-primary: #1e212a;
+    --bg-secondary: #111218;
+    --bg-tertiary: #162e44;
+    --bg-overlay: rgba(0, 0, 0, 0.9);
+    --bg-transparent: rgba(17, 18, 24, 0.7);
+    
+    /* Textos */
+    --text-white: #ffffff;
+    --text-gray: #9c9c9c;
+    --text-dark: #525252;
+    
+    /* Estados */
+    --success: #139e13;
+    --error: #ff0000;
+    --warning: #df940c;
+    
+    /* Efectos */
+    --hover-light: rgba(255, 255, 255, 0.1);
+    --hover-dark: rgba(0, 0, 0, 0.1);
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.3);
+    --transition: all 0.3s ease;
+    
+    /* Dimensiones */
+    --radius: 5px;
+    --radius-lg: 10px;
+    --radius-xl: 20px;
+    --spacing-xs: 5px;
+    --spacing-sm: 10px;
+    --spacing-md: 20px;
+    --spacing-lg: 30px;
+    --spacing-xl: 40px;
+    
+    /* Tipografía */
+    --font-xs: 0.75rem;
+    --font-sm: 0.875rem;
+    --font-md: 1rem;
+    --font-lg: 1.25rem;
+    --font-xl: 1.5rem;
+    --font-2xl: 1.75rem;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* =========================================== */
+/* RESET Y BASE */
+/* =========================================== */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+}
+
+body {
+    font-family: var(--font-family);
+    min-height: 100vh;
+    overflow: hidden;
+    color: var(--text-gray);
+    background: var(--bg-secondary);
+}
+
+/* =========================================== */
+/* UTILIDADES */
+/* =========================================== */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* =========================================== */
+/* LAYOUT PRINCIPAL */
+/* =========================================== */
+.login-container {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    padding: var(--spacing-md);
+}
+
+/* Fondo animado */
+.login-background {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.wave-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    transform: translateY(60px);
+}
+
+.wave-container svg {
+    transform: scale(2) translateY(-20px);
+}
+
+.waves {
+    animation: waveAnimation 8s linear infinite;
+}
+
+.waves_two {
+    animation: waveAnimationTwo 5s 2s linear infinite;
+    opacity: 0.5;
+}
+
+.waves_three {
+    animation: waveAnimationThree 4s linear infinite;
+    opacity: 0.6;
+}
+
+.wave {
+    fill: var(--bg-tertiary);
+}
+
+.wave_two {
+    fill: var(--primary-color);
+}
+
+.wave_three {
+    fill: var(--secondary-color);
+}
+
+@keyframes waveAnimation {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+@keyframes waveAnimationTwo {
+    0% { transform: translateX(0) translateY(2px); }
+    100% { transform: translateX(-100%) translateY(2px); }
+}
+
+@keyframes waveAnimationThree {
+    0% { transform: translateX(0) translateY(5px); }
+    100% { transform: translateX(-100%) translateY(5px); }
+}
+
+/* =========================================== */
+/* FORMULARIO DE LOGIN */
+/* =========================================== */
+.login-form {
+    position: relative;
+    z-index: 2;
+    background: var(--bg-primary);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--hover-light);
+}
+
+.login-logo {
+    height: 80px;
+    width: auto;
+    margin: 0 auto var(--spacing-md);
+    display: block;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.form-label {
+    color: var(--primary-color);
+    font-size: var(--font-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-input {
+    padding: 12px 15px;
+    border: 2px solid transparent;
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-white);
+    font-size: var(--font-md);
+    transition: var(--transition);
+    outline: none;
+}
+
+.form-input:focus {
+    border-color: var(--primary-color);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(42, 194, 148, 0.1);
+}
+
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.forgot-password {
+    color: var(--secondary-color);
+    font-size: var(--font-sm);
+    text-decoration: none;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.forgot-password:hover {
+    color: var(--secondary-hover);
+    text-decoration: underline;
+}
+
+/* =========================================== */
+/* BOTÓN DE LOGIN */
+/* =========================================== */
+.login-button {
+    position: relative;
+    padding: 14px 20px;
+    background: var(--secondary-color);
+    color: var(--text-white);
+    border: none;
+    border-radius: var(--radius);
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.login-button:hover:not(:disabled) {
+    background: var(--secondary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.login-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.login-button.loading {
+    background: var(--primary-color) !important;
+}
+
+.login-button .button-text {
+    transition: opacity 0.3s ease;
+}
+
+.login-button.loading .button-text {
+    display: none;
+}
+
+.login-button .button-loader {
+    display: none;
+    align-items: center;
+    gap: 10px;
+}
+
+.login-button.loading .button-loader {
+    display: flex;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: var(--text-white);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* =========================================== */
+/* FOOTER */
+/* =========================================== */
+.login-footer {
+    text-align: center;
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--hover-light);
+}
+
+.version {
+    color: var(--text-gray);
+    font-size: var(--font-xs);
+    opacity: 0.7;
+}
+
+.copyright {
+    color: var(--text-gray);
+    font-size: var(--font-xs);
+    margin-top: var(--spacing-xs);
+    opacity: 0.5;
+}
+
+/* =========================================== */
+/* NOTIFICACIONES */
+/* =========================================== */
+.toolbar-notifications {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    padding: var(--spacing-sm);
+}
+
+.toolbar-notifications__text-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    max-width: 400px;
+    width: 100%;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    color: var(--text-white);
+    font-size: var(--font-sm);
+    backdrop-filter: blur(10px);
+}
+
+.toolbar-notifications__text-container.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#message-approve {
+    background: linear-gradient(135deg, var(--success), rgba(19, 158, 19, 0.8));
+    border: 1px solid var(--hover-light);
+}
+
+#message-error {
+    background: linear-gradient(135deg, var(--error), rgba(255, 0, 0, 0.8));
+    border: 1px solid var(--hover-light);
+}
+
+.notify__text-content {
+    text-align: center;
+    flex: 1;
+}
+
+.palomita {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =========================================== */
+/* OVERLAY DE PROGRESO */
+/* =========================================== */
+.login-progress-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-overlay);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.login-progress-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.progress-container {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    width: 95%;
+    max-width: 500px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(20px);
+    opacity: 0;
+    animation: slideUp 0.4s ease forwards;
+}
+
+@keyframes slideUp {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.progress-header {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.progress-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto var(--spacing-md);
+}
+
+.progress-header h3 {
+    color: var(--text-white);
+    font-size: var(--font-xl);
+    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
+}
+
+.progress-subtitle {
+    color: var(--text-gray);
+    font-size: var(--font-sm);
+    opacity: 0.8;
+}
+
+.progress-bar-container {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    margin: var(--spacing-lg) 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-steps {
+    display: grid;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.progress-step {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-sm);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius);
+    border-left: 3px solid transparent;
+    transition: var(--transition);
+    opacity: 0.6;
+    transform: translateX(-5px);
+}
+
+.progress-step.active {
+    opacity: 1;
+    transform: translateX(0);
+    background: rgba(42, 194, 148, 0.1);
+    border-left-color: var(--primary-color);
+}
+
+.step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: var(--text-gray);
+    font-size: var(--font-sm);
+    font-weight: 600;
+    margin-right: var(--spacing-sm);
+    transition: var(--transition);
+}
+
+.progress-step.active .step-number {
+    background: var(--primary-color);
+    color: var(--text-white);
+    animation: pulseStep 2s infinite;
+}
+
+@keyframes pulseStep {
+    0%, 100% { box-shadow: 0 0 5px rgba(42, 194, 148, 0.5); }
+    50% { box-shadow: 0 0 15px rgba(42, 194, 148, 0.8); }
+}
+
+.step-text {
+    color: var(--text-gray);
+    font-size: var(--font-sm);
+    transition: var(--transition);
+}
+
+.progress-step.active .step-text {
+    color: var(--text-white);
+}
+
+.progress-status {
+    text-align: center;
+    color: var(--text-gray);
+    font-size: var(--font-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.progress-status span {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.progress-message {
+    text-align: center;
+    color: var(--primary-color);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    padding: var(--spacing-sm);
+    background: rgba(42, 194, 148, 0.1);
+    border-radius: var(--radius);
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* =========================================== */
+/* RESPONSIVE */
+/* =========================================== */
+@media (max-width: 480px) {
+    .login-form {
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-lg);
+    }
+    
+    .login-logo {
+        height: 60px;
+    }
+    
+    .form-input {
+        padding: 10px 12px;
+    }
+    
+    .login-button {
+        padding: 12px 16px;
+    }
+    
+    .progress-container {
+        padding: var(--spacing-lg);
+        margin: var(--spacing-md);
+        border-radius: var(--radius-lg);
+    }
+    
+    .progress-spinner {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .progress-header h3 {
+        font-size: var(--font-lg);
+    }
+}
+
+@media (max-width: 768px) {
+    .wave-container {
+        transform: translateY(40px);
+    }
+    
+    .wave-container svg {
+        transform: scale(1.5) translateY(-10px);
+    }
+}
+
+@media (min-width: 1200px) {
+    .login-form {
+        max-width: 450px;
+    }
+}
+
+/* =========================================== */
+/* TEMA CLARO */
+/* =========================================== */
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg-primary: #f5f9ff;
+        --bg-secondary: #ffffff;
+        --bg-tertiary: #e6f2ff;
+        --bg-overlay: rgba(0, 0, 0, 0.85);
+        --text-gray: #525252;
+        --hover-light: rgba(0, 0, 0, 0.1);
+    }
+    
+    .login-form {
+        background: var(--bg-primary);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-input {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--text-dark);
+    }
+    
+    .form-input:focus {
+        background: rgba(0, 0, 0, 0.1);
+    }
+    
+    .wave {
+        fill: #e6f2ff;
+    }
+    
+    .wave_two {
+        fill: var(--primary-dark);
+    }
+    
+    .wave_three {
+        fill: #0d5ba8;
+    }
+    
+    .progress-container {
+        background: linear-gradient(135deg, var(--bg-primary) 0%, #e8f4ff 100%);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .progress-step {
+        background: rgba(0, 0, 0, 0.05);
+    }
+    
+    .progress-step.active {
+        background: rgba(42, 194, 148, 0.15);
+    }
+    
+    .progress-spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-top-color: var(--primary-color);
+    }
+    
+    .progress-bar-container {
+        background: rgba(0, 0, 0, 0.1);
+    }
+    
+    .step-number {
+        background: rgba(0, 0, 0, 0.1);
+        color: var(--text-dark);
+    }
+    
+    .progress-step.active .step-number {
+        background: var(--primary-color);
+        color: var(--text-white);
+    }
+    
+    .step-text {
+        color: var(--text-dark);
+    }
+    
+    .progress-step.active .step-text {
+        color: var(--text-dark);
+    }
+    
+    .progress-message {
+        background: rgba(42, 194, 148, 0.15);
+    }
+}

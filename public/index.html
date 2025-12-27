@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <meta name="description" content="Sistema de gestión de préstamos BRK Software">
+    
+    <!-- Preload crítico -->
+    <link rel="preload" href="/login.css" as="style">
+    <link rel="preload" href="/login.js" as="script">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/login.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/logo-original.svg">
+    
+    <title>BRK SOFTWARE - Sistema de Préstamos</title>
+</head>
+
+<body translate="no">
+    <!-- Notificaciones -->
+    <div class="toolbar-notifications">
+        <div id="message-approve" class="toolbar-notifications__text-container">
+            <p class="notify__text-content"></p>
+            <span class="palomita">✓</span>
+        </div>
+        <div id="message-error" class="toolbar-notifications__text-container">
+            <p class="notify__text-content"></p>
+            <span class="palomita">✕</span>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="login-container">
+        <!-- Fondo animado -->
+        <div class="login-background">
+            <div class="wave-container">
+                <svg viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg">
+                    <g class="waves">
+                        <path class="wave" d="M0 25 Q50 30 100 25 T200 25 V50 H0 Z M200 25 Q250 30 300 25 T400 25 V50 H200 Z"></path>
+                    </g>
+                    <g class="waves_two">
+                        <path class="wave_two" d="M0 25 Q50 30 100 25 T200 25 V50 H0 Z M200 25 Q250 30 300 25 T400 25 V50 H200 Z"></path>
+                    </g>
+                    <g class="waves_three">
+                        <path class="wave_three" d="M0 25 Q50 30 100 25 T200 25 V50 H0 Z M200 25 Q250 30 300 25 T400 25 V50 H200 Z"></path>
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Formulario de login -->
+        <form class="login-form" id="loginForm" autocomplete="on">
+            <img src="/assets/logo-original.svg" alt="BRK Software Logo" class="login-logo" loading="eager">
+            
+            <div class="form-group">
+                <label class="form-label" for="username">Usuario</label>
+                <input id="username" class="form-input" type="text" autocomplete="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">Contraseña</label>
+                <input id="password" class="form-input" type="password" autocomplete="current-password" required>
+            </div>
+            
+            <button id="login-btn" class="login-button" type="submit">
+                <span class="button-text">Ingresar</span>
+                <span class="button-loader hidden">
+                    <div class="spinner"></div>
+                    Cargando...
+                </span>
+            </button>
+            
+            <div class="login-footer">
+                <p class="version">v1.0.0</p>
+                <p class="copyright">© 2024 BRK Software. Todos los derechos reservados.</p>
+            </div>
+        </form>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/login.js" defer></script>
+    
+    <!-- Configuración global -->
+    <script>
+        // Detectar HTTPS y redirigir si es necesario
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+            window.location.href = 'https://' + window.location.host + window.location.pathname;
+        }
+        
+        // Configuración global
+        window.appConfig = {
+            apiUrl: '/api/auth',
+            version: '1.0.0',
+            features: {
+                geolocation: true,
+                realtime: true
+            }
+        };
+    </script>
+</body>
+</html>

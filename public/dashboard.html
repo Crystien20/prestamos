@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <meta name="description" content="Dashboard BRK Software - Sistema de Gestión de Préstamos">
+    
+    <!-- Preload crítico -->
+    <link rel="preload" href="/dashboard.css" as="style">
+    <link rel="preload" href="/dashboard.js" as="script">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/dashboard.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/logo-original.svg">
+    
+    <title>BRK SOFTWARE - Dashboard</title>
+    
+    <style>
+        /* Estilos iniciales del loader */
+        .main-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #1e212a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+        }
+        
+        .e-loadholder {
+            text-align: center;
+        }
+        
+        .m-loader {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #2ac294;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        .e-text {
+            color: #2ac294;
+            font-size: 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body translate="no">
+    <!-- Notificaciones -->
+    <div class="toolbar-notifications">
+        <div id="message-approve" class="toolbar-notifications__text-container">
+            <p class="notify__text-content"></p>
+            <span class="palomita">✓</span>
+        </div>
+        <div id="message-error" class="toolbar-notifications__text-container">
+            <p class="notify__text-content"></p>
+            <span class="palomita">✕</span>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <main class="main-section">
+        <!-- Loader inicial -->
+        <div class="main-loader">
+            <div class="e-loadholder">
+                <div class="m-loader"></div>
+                <div class="e-text">Cargando dashboard...</div>
+            </div>
+        </div>
+
+        <div class="light-layout"></div>
+
+        <!-- Contenedor principal -->
+        <div class="container">
+            <!-- Menú hamburguesa -->
+            <button class="hamburguer-menu hover-item">
+                <span class="hamburguer-menu__line line-one"></span>
+                <span class="hamburguer-menu__line line-two"></span>
+                <span class="hamburguer-menu__line line-three"></span>
+            </button>
+
+            <!-- Menú lateral -->
+            <section class="menu">
+                <div class="light-layout"></div>
+                <div class="menu-backdrop"></div>
+                <nav class="menu-nav">
+                    <div class="menu-nav__logo">
+                        <img class="menu-nav__logo-img" src="/assets/logo-original.svg" alt="BRK Software" 
+                             onerror="this.src='/assets/lupa.svg'">
+                    </div>
+                    <ul class="menu-nav__list" id="menu-nav-list">
+                        <!-- Menú dinámico se cargará con JavaScript -->
+                    </ul>
+                </nav>
+            </section>
+
+            <!-- Contenido principal -->
+            <section class="main-content">
+                <!-- Barra superior usuario -->
+                <div class="menu-user">
+                    <ul class="menu-user__items">
+                        <li class="menu-user__item menu-user-clock">
+                            <span id="reloj" class="menu-user-clock__content">--:--:--</span>
+                        </li>
+                        <li class="menu-user__item hover-item button exitSystem closeMain" title="Salir del sistema">
+                            <svg class="menu-user__icon" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M16 17v-3H9v-4h7V7l5 5l-5 5M14 2a2 2 0 0 1 2 2v2h-2V4H5v16h9v-2h2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9z"/>
+                            </svg>
+                        </li>
+                        <li class="menu-user__item hover-item button refreshPage click_logo" title="Actualizar página">
+                            <svg class="menu-user__icon" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M17.65 6.35A7.958 7.958 0 0 0 12 4a8 8 0 0 0-8 8a8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6a6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                            </svg>
+                        </li>
+                        <li class="menu-user__item hover-item button menu-user-settings" title="Configuración de usuario">
+                            <span class="menu-user__name" id="user-name">Usuario</span>
+                            <span class="arrow-down">
+                                <svg class="arrow-down-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+                                    <g transform="rotate(180 512 512)">
+                                        <path fill="currentColor" d="M104.704 685.248a64 64 0 0 0 90.496 0l316.8-316.8l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z"/>
+                                    </g>
+                                </svg>
+                            </span>
+                            <img id="fotoperfil" class="menu-user__img" src="/assets/user.svg" alt="Usuario" 
+                                 onerror="this.src='/assets/user.svg'">
+                            <ul class="menu-user__settings-nav">
+                                <li class="menu-user__settings-item hover-item button changePass">Cambiar contraseña</li>
+                                <li class="menu-user__settings-item hover-item switch-theme button">
+                                    <div class="theme__btn">
+                                        <img class="theme__icon" src="/assets/sun.svg" alt="Tema claro">
+                                        <img class="theme__icon" src="/assets/moon.svg" alt="Tema oscuro">
+                                        <div class="theme__picker"></div>
+                                    </div>
+                                </li>
+                                <li class="menu-user__settings-item hover-item button closeMain">Cerrar Sesión</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Vista principal -->
+                <div class="main-view" id="main-view">
+                    <!-- Contenido dinámico se cargará aquí -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="/dashboard.js" defer></script>
+    
+    <!-- Configuración inicial -->
+    <script>
+        // Configuración global del dashboard
+        window.dashboardConfig = {
+            apiUrl: '/api',
+            features: {
+                chat: true,
+                maps: false,
+                notifications: true
+            }
+        };
+    </script>
+</body>
+</html>
