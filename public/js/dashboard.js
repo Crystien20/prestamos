@@ -1,741 +1,773 @@
-// dashboard.js
-console.log('🚀 Dashboard BRK Software - PRODUCCIÓN');
+import ApiClient from './core/ApiClient.js';
+import TableManager from './core/TableManager.js';
+import ModalManager from './core/ModalManager.js';
+import FormManager from './core/FormManager.js';
+import TemplateManager from './core/TemplateManager.js';
+import Triggers from './modules/Triggers.js';
+import Chats from './modules/Chats.js';
+import Settings from './modules/Settings.js';
+import Constants from './utils/Constants.js';
+import Helpers from './utils/Helpers.js';
 
-// ===========================================
-// CONFIGURACIÓN GLOBAL DE PRODUCCIÓN
-// ===========================================
-const BRK_CONFIG = {
-    user: null,
-    apiUrl: '/api',
+class Dashboard {
+    constructor() {
+        this.userData = null;
+        this.dashboardData = null;
+        this.menuItems = [];
+        this.initialized = false;
+    }
     
-    initialize() {
+    // Inicializar dashboard
+    async init() {
+        if (this.initialized) return;
+        
         try {
-            const userData = localStorage.getItem('brk_user');
-            const token = localStorage.getItem('brk_token');
+            // Verificar autenticación
+            await this.checkAuth();
             
-            console.log('🔍 Verificando autenticación...');
+            // Mostrar loading
+            this.showLoading();
             
-            if (!userData || !token) {
-                console.warn('⚠️ Sesión no válida - Redirigiendo al login');
-                window.location.href = '/';
-                return false;
-            }
+            // Cargar datos iniciales
+            await Promise.all([
+                this.loadUserData(),
+                this.loadDashboardData(),
+                this.loadMenu()
+            ]);
             
-            this.user = JSON.parse(userData);
-            console.log('✅ Usuario autenticado:', {
-                username: this.user.username,
-                level: this.user.level
-            });
+            // Renderizar UI
+            this.renderDashboard();
             
-            return true;
+            // Inicializar módulos
+            this.initModules();
+            
+            // Aplicar triggers
+            Triggers.applyTriggers();
+            
+            // Ocultar loading
+            this.hideLoading();
+            
+            this.initialized = true;
+            
+            // Verificar notificaciones pendientes
+            this.checkPendingNotifications();
+            
         } catch (error) {
-            console.error('❌ Error inicializando sesión:', error);
-            window.location.href = '/';
-            return false;
+            console.error('Error inicializando dashboard:', error);
+            this.handleInitError(error);
         }
-    },
+    }
     
-    getAuthHeaders() {
-        const token = localStorage.getItem('brk_token');
+    // Verificar autenticación
+    async checkAuth() {
+        const token = localStorage.getItem(Constants.STORAGE_KEYS.TOKEN);
+        
         if (!token) {
-            console.error('❌ Token no disponible');
-            return {};
+            window.location.href = '/';
+            throw new Error('No autenticado');
         }
         
-        return {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        };
-    },
+        // Verificar token en servidor (opcional)
+        // await ApiClient.get('/api/auth/verify');
+    }
     
-    async makeRequest(endpoint, options = {}) {
-        const url = `${this.apiUrl}${endpoint}`;
-        const headers = this.getAuthHeaders();
-        
-        if (Object.keys(headers).length === 0) {
-            throw new Error('No hay token de autenticación');
-        }
-        
-        console.log(`📡 Petición a: ${url}`);
-        
+    // Cargar datos del usuario
+    async loadUserData() {
         try {
-            const response = await fetch(url, {
-                ...options,
-                headers: { ...headers, ...options.headers },
-                credentials: 'same-origin'
-            });
-            
-            if (response.status === 401) {
-                console.warn('🔐 Sesión expirada');
-                localStorage.clear();
-                window.location.href = '/';
-                throw new Error('Sesión expirada');
+            const data = localStorage.getItem(Constants.STORAGE_KEYS.USER_DATA);
+            if (data) {
+                this.userData = JSON.parse(data);
+            } else {
+                // Si no hay datos en localStorage, obtener del servidor
+                const response = await ApiClient.get('/api/auth/me');
+                this.userData = response.user;
+                localStorage.setItem(Constants.STORAGE_KEYS.USER_DATA, JSON.stringify(response.user));
             }
-            
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${await response.text()}`);
-            }
-            
-            return await response.json();
-            
         } catch (error) {
-            console.error(`❌ Error en ${endpoint}:`, error.message);
+            console.error('Error cargando datos del usuario:', error);
             throw error;
         }
     }
-};
-
-// ===========================================
-// DASHBOARD MANAGER - PRODUCCIÓN
-// ===========================================
-class DashboardManager {
-    constructor() {
-        this.menuOpen = false;
-        this.currentView = 'dashboard';
-    }
     
-    async initialize() {
-        console.log('🚀 Iniciando Dashboard Manager...');
-        
+    // Cargar datos del dashboard
+    async loadDashboardData() {
         try {
-            // 1. Inicializar configuración
-            if (!BRK_CONFIG.initialize()) {
-                throw new Error('Configuración inválida');
-            }
-            
-            // 2. Ocultar loader
-            this.hideLoader();
-            
-            // 3. Cargar menú
-            await this.loadMenu();
-            
-            // 4. Cargar dashboard principal
-            await this.loadDashboard();
-            
-            // 5. Configurar eventos
-            this.bindEvents();
-            
-            // 6. Iniciar reloj
-            this.startClock();
-            
-            // 7. Cargar tema guardado
-            this.loadSavedTheme();
-            
-            // 8. Mostrar mensaje de bienvenida
-            this.showWelcomeMessage();
-            
-            console.log('✅ Dashboard inicializado correctamente');
-            
+            const response = await ApiClient.getDashboardStats();
+            this.dashboardData = response;
         } catch (error) {
-            console.error('❌ Error inicializando dashboard:', error);
-            this.showError(`Error al iniciar: ${error.message}`);
+            console.error('Error cargando datos del dashboard:', error);
+            this.dashboardData = this.getDefaultDashboardData();
         }
     }
     
-    hideLoader() {
-        const loader = document.querySelector('.main-loader');
-        if (loader) {
-            setTimeout(() => {
-                loader.style.display = 'none';
-            }, 500);
-        }
+    // Obtener datos por defecto del dashboard
+    getDefaultDashboardData() {
+        return {
+            stats: [
+                { label: 'Clientes Activos', value: 0, icon: 'fas fa-users', color: 'blue' },
+                { label: 'Préstamos Activos', value: 0, icon: 'fas fa-hand-holding-usd', color: 'green' },
+                { label: 'Monto Total', value: 0, icon: 'fas fa-dollar-sign', color: 'orange' },
+                { label: 'Pagos Hoy', value: 0, icon: 'fas fa-calendar-check', color: 'purple' }
+            ],
+            recentLoans: [],
+            upcomingPayments: [],
+            monthlySummary: {
+                totalLoans: 0,
+                totalPayments: 0,
+                pendingAmount: 0
+            }
+        };
     }
     
+    // Cargar menú
     async loadMenu() {
         try {
-            console.log('📋 Cargando menú...');
-            const response = await BRK_CONFIG.makeRequest('/menu');
-            
-            if (response.success) {
-                this.renderMenu(response.menu);
-            } else {
-                throw new Error('Error en la respuesta del menú');
-            }
+            const response = await ApiClient.getMenu();
+            this.menuItems = response.menu || [];
         } catch (error) {
-            console.error('❌ Error cargando menú:', error.message);
-            this.showError('No se pudo cargar el menú: ' + error.message);
+            console.error('Error cargando menú:', error);
+            this.menuItems = this.getDefaultMenu();
         }
     }
     
-    renderMenu(menuItems) {
-        const menuList = document.getElementById('menu-nav-list');
-        if (!menuList) {
-            console.error('❌ No se encontró el contenedor del menú');
-            return;
+    // Obtener menú por defecto
+    getDefaultMenu() {
+        return [
+            { id: 'dashboard', text: 'Dashboard', icon: 'fas fa-home', url: '#dashboard', active: true },
+            { id: 'clients', text: 'Clientes', icon: 'fas fa-users', url: '#clients' },
+            { id: 'loans', text: 'Préstamos', icon: 'fas fa-hand-holding-usd', url: '#loans' },
+            { id: 'payments', text: 'Pagos', icon: 'fas fa-credit-card', url: '#payments' },
+            { id: 'reports', text: 'Reportes', icon: 'fas fa-chart-bar', url: '#reports' },
+            { id: 'settings', text: 'Configuración', icon: 'fas fa-cog', url: '#settings' }
+        ];
+    }
+    
+    // Renderizar dashboard
+    renderDashboard() {
+        this.renderUserInfo();
+        this.renderMenu();
+        this.renderStats();
+        this.initTables();
+    }
+    
+    // Renderizar información del usuario
+    renderUserInfo() {
+        if (!this.userData) return;
+        
+        const userName = document.getElementById('userName');
+        const userRole = document.getElementById('userRole');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        if (userName) userName.textContent = this.userData.nombre || this.userData.username || 'Usuario';
+        if (userRole) userRole.textContent = this.userData.rol || 'Administrador';
+        if (userAvatar && this.userData.avatar) {
+            userAvatar.src = this.userData.avatar;
         }
+    }
+    
+    // Renderizar menú
+    renderMenu() {
+        const menuContainer = document.getElementById('sidebarMenu');
+        if (!menuContainer) return;
         
-        menuList.innerHTML = '';
+        const menuHTML = this.menuItems.map(item => 
+            TemplateManager.render('menuItem', item)
+        ).join('');
         
-        menuItems.forEach(item => {
-            const menuItem = document.createElement('li');
-            menuItem.className = 'menu-nav__item';
-            menuItem.dataset.id = item.id;
-            
-            menuItem.innerHTML = `
-                <span class="menu-nav__item-anchor button">
-                    <span class="menu-nav__item-content">
-                        <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <circle cx="12" cy="12" r="8"/>
-                        </svg>
-                        <span class="menu-nav__item-text">${item.text}</span>
-                    </span>
-                    <span class="arrow-down">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M7 10l5 5 5-5z"/>
-                        </svg>
-                    </span>
-                </span>
-                <ul class="menu-nav__sublist">
-                    ${item.subitems.map(subitem => `
-                        <li class="menu-nav__item button" data-action="${subitem.action}">
-                            ${subitem.text}
-                        </li>
-                    `).join('')}
-                </ul>
-            `;
-            
-            menuList.appendChild(menuItem);
-        });
+        menuContainer.innerHTML = menuHTML;
         
+        // Vincular eventos del menú
         this.bindMenuEvents();
     }
     
+    // Vincular eventos del menú
     bindMenuEvents() {
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.menu-nav__item-anchor')) {
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', (e) => {
                 e.preventDefault();
-                const anchor = e.target.closest('.menu-nav__item-anchor');
-                const sublist = anchor.nextElementSibling;
-                const arrow = anchor.querySelector('.arrow-down');
                 
-                document.querySelectorAll('.menu-nav__sublist').forEach(s => {
-                    if (s !== sublist) s.classList.remove('showItemnav');
-                });
-                document.querySelectorAll('.arrow-down').forEach(a => {
-                    if (a !== arrow) a.style.transform = 'rotate(0deg)';
-                });
-                
-                sublist.classList.toggle('showItemnav');
-                arrow.style.transform = sublist.classList.contains('showItemnav') 
-                    ? 'rotate(180deg)' 
-                    : 'rotate(0deg)';
-            }
-            
-            if (e.target.closest('.menu-nav__sublist .menu-nav__item')) {
-                const item = e.target.closest('.menu-nav__item');
                 const action = item.dataset.action;
+                const menuId = item.dataset.menu;
                 
-                if (action) {
-                    this.handleMenuAction(action);
-                    
-                    if (window.innerWidth < 1200) {
-                        this.closeMenu();
-                    }
+                switch (action) {
+                    case 'navigate':
+                        this.navigateTo(menuId, item.href);
+                        break;
+                        
+                    case 'modal':
+                        this.openModal(menuId);
+                        break;
+                        
+                    case 'section':
+                        this.showSection(menuId);
+                        break;
+                        
+                    default:
+                        console.log(`Acción ${action} no implementada`);
                 }
-            }
-            
-            if (!e.target.closest('.menu') && !e.target.closest('.hamburguer-menu')) {
-                this.closeMenu();
-            }
+            });
+        });
+    }
+    
+    // Navegar a sección
+    navigateTo(sectionId, url) {
+        // Remover activo de todos los items
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.classList.remove('active');
         });
         
-        const hamburger = document.querySelector('.hamburguer-menu');
-        if (hamburger) {
-            hamburger.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.toggleMenu();
-            });
+        // Activar item actual
+        document.querySelector(`[data-menu="${sectionId}"]`)?.classList.add('active');
+        
+        // Cargar contenido de la sección
+        this.loadSectionContent(sectionId);
+        
+        // Actualizar URL si es necesario
+        if (url && url !== '#') {
+            window.history.pushState({ section: sectionId }, '', url);
         }
     }
     
-    handleMenuAction(action) {
-        console.log(`🎯 Acción seleccionada: ${action}`);
+    // Cargar contenido de sección
+    async loadSectionContent(sectionId) {
+        const contentArea = document.getElementById('contentArea');
+        if (!contentArea) return;
         
-        const actionMap = {
-            'dashboard': () => this.loadDashboard(),
-            'showadmin': () => this.showModule('Administradores', 'Listado de administradores'),
-            'showmoney': () => this.showModule('Monedas', 'Gestión de monedas'),
-            'showsecre': () => this.showModule('Secretarios', 'Listado de secretarios'),
-            'showsuper': () => this.showModule('Supervisores', 'Listado de supervisores'),
-            'showcobra': () => this.showModule('Cobradores', 'Listado de cobradores'),
-            'showpendientes': () => this.showModule('Clientes Pendientes', 'Clientes pendientes por visitar'),
-            'generarreport': () => this.showModule('Generar Reporte', 'Generar reporte del día')
-        };
-        
-        if (actionMap[action]) {
-            actionMap[action]();
-        } else {
-            this.loadDashboard();
-        }
-    }
-    
-    async loadDashboard() {
-        try {
-            console.log('📊 Cargando dashboard...');
-            const response = await BRK_CONFIG.makeRequest('/dashboard/modules');
-            
-            if (response.success) {
-                this.renderDashboard(response.modules);
-            } else {
-                throw new Error('Error en la respuesta del dashboard');
-            }
-        } catch (error) {
-            console.error('❌ Error cargando dashboard:', error.message);
-            this.showError('No se pudo cargar el dashboard: ' + error.message);
-        }
-    }
-    
-    renderDashboard(modules) {
-        const mainView = document.getElementById('main-view');
-        if (!mainView) return;
-        
-        const levelNames = {
-            'ma': 'Master',
-            'ad': 'Administrador',
-            'se': 'Secretario',
-            'su': 'Supervisor',
-            'co': 'Cobrador'
-        };
-        
-        const user = BRK_CONFIG.user;
-        const levelName = levelNames[user.level] || 'Usuario';
-        const userName = user.fullName || user.username;
-        
-        let html = `
-            <div class="dashboard__container">
-                <h2 class="title-section__text">Dashboard - ${levelName}</h2>
-                <p style="margin-bottom: 20px; color: var(--text-gray);">
-                    Bienvenido ${userName}
-                </p>
-                
-                <div class="grid-dashboard">
+        // Mostrar loading
+        contentArea.innerHTML = `
+            <div class="section-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando...</p>
+            </div>
         `;
         
-        modules.forEach(module => {
-            html += `
-                <div class="grid-dashboard__block">
-                    <img class="grid-dashboard__icon" src="${module.icon}" alt="${module.title}"
-                         onerror="this.src='/assets/lupa.svg'">
-                    <h3 class="grid-dashboard__title">${module.title}</h3>
-                    <p class="grid-dashboard__text">${module.description}</p>
-                    <button class="generic-btn__text grid-dashboard-btn" data-action="${module.action}">
-                        Acceder
+        try {
+            let content;
+            
+            switch (sectionId) {
+                case 'dashboard':
+                    content = this.getDashboardContent();
+                    break;
+                    
+                case 'clients':
+                    content = await this.getClientsContent();
+                    break;
+                    
+                case 'loans':
+                    content = await this.getLoansContent();
+                    break;
+                    
+                case 'payments':
+                    content = await this.getPaymentsContent();
+                    break;
+                    
+                case 'reports':
+                    content = await this.getReportsContent();
+                    break;
+                    
+                case 'settings':
+                    content = await this.getSettingsContent();
+                    break;
+                    
+                default:
+                    content = '<h2>Sección no encontrada</h2>';
+            }
+            
+            contentArea.innerHTML = content;
+            
+            // Inicializar componentes específicos de la sección
+            this.initSectionComponents(sectionId);
+            
+        } catch (error) {
+            console.error(`Error cargando sección ${sectionId}:`, error);
+            contentArea.innerHTML = `
+                <div class="section-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error al cargar la sección</h3>
+                    <p>${error.message}</p>
+                    <button class="btn btn-primary" onclick="dashboard.loadSectionContent('${sectionId}')">
+                        Reintentar
                     </button>
                 </div>
             `;
-        });
-        
-        html += `
-                </div>
-            </div>
-        `;
-        
-        mainView.innerHTML = html;
-        
-        mainView.querySelectorAll('.grid-dashboard-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const action = e.target.dataset.action;
-                if (action) {
-                    this.handleMenuAction(action);
-                }
-            });
-        });
+        }
     }
     
-    showModule(title, description) {
-        const mainView = document.getElementById('main-view');
-        if (!mainView) return;
-        
-        mainView.innerHTML = `
-            <div class="dashboard__container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 class="title-section__text">${title}</h2>
-                    <button class="generic-btn__text" onclick="window.dashboard.loadDashboard()" 
-                            style="width: auto; padding: 8px 16px;">
-                        ← Volver al Dashboard
-                    </button>
+    // Obtener contenido del dashboard
+    getDashboardContent() {
+        return `
+            <section class="dashboard-section">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">Dashboard Principal</h1>
+                    <p class="dashboard-subtitle">Resumen general del sistema</p>
                 </div>
                 
-                <div style="
-                    background: var(--background-color-two);
-                    border-radius: 10px;
-                    padding: 30px;
-                    min-height: 400px;
-                ">
-                    <div style="text-align: center; padding: 20px 0;">
-                        <div style="
-                            width: 80px;
-                            height: 80px;
-                            background: var(--primary-color);
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            margin: 0 auto 20px;
-                        ">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                            </svg>
+                <div class="stats-grid" id="statsGrid"></div>
+                
+                <div class="content-grid">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-users"></i> Últimos Clientes</h3>
                         </div>
-                        
-                        <h3 style="color: var(--primary-color); margin-bottom: 15px;">
-                            ${title}
-                        </h3>
-                        
-                        <p style="color: var(--text-gray); margin-bottom: 25px; max-width: 600px; margin: 0 auto 25px;">
-                            ${description}
-                        </p>
-                        
-                        <div style="
-                            display: grid;
-                            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                            gap: 15px;
-                            margin-top: 30px;
-                        ">
-                            <div style="
-                                background: var(--background-color-three);
-                                padding: 20px;
-                                border-radius: 8px;
-                                text-align: center;
-                            ">
-                                <h4 style="color: var(--primary-color); margin-bottom: 10px;">Funcionalidad 1</h4>
-                                <p style="color: var(--text-gray); font-size: 14px;">
-                                    Descripción de la funcionalidad principal
-                                </p>
-                            </div>
-                            
-                            <div style="
-                                background: var(--background-color-three);
-                                padding: 20px;
-                                border-radius: 8px;
-                                text-align: center;
-                            ">
-                                <h4 style="color: var(--primary-color); margin-bottom: 10px;">Funcionalidad 2</h4>
-                                <p style="color: var(--text-gray); font-size: 14px;">
-                                    Descripción de funcionalidad adicional
-                                </p>
-                            </div>
+                        <div class="card-body">
+                            <div id="recentClientsTable"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-hand-holding-usd"></i> Préstamos Recientes</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="recentLoansTable"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-card full-width">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Resumen Mensual</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="monthlyChart"></div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
         `;
     }
     
-    toggleMenu() {
-        const menu = document.querySelector('.menu');
-        const lines = document.querySelectorAll('.hamburguer-menu__line');
+    // Renderizar estadísticas
+    renderStats() {
+        const statsGrid = document.getElementById('statsGrid');
+        if (!statsGrid || !this.dashboardData?.stats) return;
         
-        if (this.menuOpen) {
-            this.closeMenu();
-        } else {
-            this.openMenu();
+        const statsHTML = this.dashboardData.stats.map(stat => 
+            TemplateManager.render('statsCard', stat)
+        ).join('');
+        
+        statsGrid.innerHTML = statsHTML;
+    }
+    
+    // Inicializar tablas
+    initTables() {
+        // Tabla de clientes recientes
+        TableManager.init('recentClientsTable', {
+            endpoint: '/api/clients/recent',
+            columns: Constants.TABLE_CONFIGS.CLIENTS.columns,
+            pageSize: 5,
+            showSearch: false,
+            showPagination: false,
+            actions: ['view'],
+            onRowClick: (id, row) => {
+                this.viewClient(id);
+            }
+        });
+        
+        // Tabla de préstamos recientes
+        TableManager.init('recentLoansTable', {
+            endpoint: '/api/loans/recent',
+            columns: Constants.TABLE_CONFIGS.LOANS.columns,
+            pageSize: 5,
+            showSearch: false,
+            showPagination: false,
+            actions: ['view'],
+            onRowClick: (id, row) => {
+                this.viewLoan(id);
+            }
+        });
+    }
+    
+    // Inicializar módulos
+    initModules() {
+        // Inicializar chat
+        Chats.init();
+        
+        // Inicializar configuración
+        Settings.init();
+        
+        // Configurar tema
+        this.initTheme();
+        
+        // Configurar manejador de errores global
+        this.initErrorHandler();
+    }
+    
+    // Inicializar tema
+    initTheme() {
+        const savedTheme = localStorage.getItem('brk_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        // Actualizar iconos del toggle
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            const icons = themeToggle.querySelectorAll('.theme-icon');
+            icons.forEach(icon => {
+                icon.classList.toggle('hidden', 
+                    (icon.classList.contains('sun') && savedTheme === 'dark') ||
+                    (icon.classList.contains('moon') && savedTheme === 'light')
+                );
+            });
         }
     }
     
-    openMenu() {
-        const menu = document.querySelector('.menu');
-        const lines = document.querySelectorAll('.hamburguer-menu__line');
-        
-        menu.classList.add('showMenu');
-        lines[0].classList.add('line-one-closed');
-        lines[1].classList.add('line-two-closed');
-        lines[2].classList.add('line-three-closed');
-        this.menuOpen = true;
-    }
-    
-    closeMenu() {
-        const menu = document.querySelector('.menu');
-        const lines = document.querySelectorAll('.hamburguer-menu__line');
-        
-        menu.classList.remove('showMenu');
-        lines.forEach(line => {
-            line.classList.remove('line-one-closed', 'line-two-closed', 'line-three-closed');
-        });
-        this.menuOpen = false;
-    }
-    
-    bindEvents() {
-        document.querySelectorAll('.closeMain, .exitSystem').forEach(button => {
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.logout();
-            });
-        });
-        
-        const refreshBtn = document.querySelector('.refreshPage');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                location.reload();
-            });
-        }
-        
-        const userBtn = document.querySelector('.menu-user-settings');
-        const userMenu = document.querySelector('.menu-user__settings-nav');
-        
-        if (userBtn && userMenu) {
-            userBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                userMenu.classList.toggle('showUsermenu');
-            });
+    // Inicializar manejador de errores
+    initErrorHandler() {
+        window.addEventListener('error', (event) => {
+            console.error('Error global:', event.error);
             
-            document.addEventListener('click', (e) => {
-                if (!userBtn.contains(e.target) && !userMenu.contains(e.target)) {
-                    userMenu.classList.remove('showUsermenu');
-                }
-            });
-        }
-        
-        const themeBtn = document.querySelector('.switch-theme');
-        if (themeBtn) {
-            themeBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.toggleTheme();
-            });
-        }
-        
-        this.updateUserInfo();
-    }
-    
-    startClock() {
-        const updateClock = () => {
-            const clockElement = document.getElementById('reloj');
-            if (clockElement) {
-                const now = new Date();
-                clockElement.textContent = now.toLocaleTimeString('es-ES', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
+            // Mostrar error al usuario de forma amigable
+            if (!event.error.handled) {
+                ModalManager.createModal({
+                    title: 'Error del Sistema',
+                    type: 'error',
+                    content: `
+                        <div class="error-modal">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h4>Ocurrió un error inesperado</h4>
+                            <p>${event.error.message || 'Error desconocido'}</p>
+                            <details>
+                                <summary>Detalles técnicos</summary>
+                                <pre>${event.error.stack}</pre>
+                            </details>
+                        </div>
+                    `,
+                    buttons: [
+                        {
+                            text: 'Cerrar',
+                            class: 'btn-secondary',
+                            action: 'close'
+                        },
+                        {
+                            text: 'Reportar',
+                            class: 'btn-primary',
+                            action: 'report'
+                        }
+                    ]
                 });
+                
+                event.error.handled = true;
             }
-        };
-        
-        updateClock();
-        setInterval(updateClock, 1000);
+        });
     }
     
-    updateUserInfo() {
-        const user = BRK_CONFIG.user;
-        if (!user) return;
-        
-        const userNameElement = document.getElementById('user-name');
-        if (userNameElement) {
-            const levelNames = {
-                'ma': 'Master',
-                'ad': 'Admin',
-                'se': 'Secretario',
-                'su': 'Supervisor',
-                'co': 'Cobrador'
-            };
-            
-            const levelName = levelNames[user.level] || 'Usuario';
-            userNameElement.textContent = `${levelName}: ${user.fullName || user.username}`;
-        }
-        
-        const userImage = document.getElementById('fotoperfil');
-        if (userImage) {
-            userImage.src = '/assets/user.svg';
-            userImage.onerror = function() {
-                this.src = '/assets/lupa.svg';
-            };
-        }
+    // Mostrar loading
+    showLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) loadingOverlay.classList.add('active');
     }
     
-    toggleTheme() {
-        const body = document.body;
-        const themePicker = document.querySelector('.theme__picker');
-        
-        if (body.classList.contains('light-theme')) {
-            body.classList.remove('light-theme');
-            if (themePicker) {
-                themePicker.classList.remove('theme__picker-slide');
-            }
-            localStorage.setItem('brk_theme', 'dark');
-        } else {
-            body.classList.add('light-theme');
-            if (themePicker) {
-                themePicker.classList.add('theme__picker-slide');
-            }
-            localStorage.setItem('brk_theme', 'light');
-        }
+    // Ocultar loading
+    hideLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) loadingOverlay.classList.remove('active');
     }
     
-    loadSavedTheme() {
+    // Manejar error de inicialización
+    handleInitError(error) {
+        console.error('Error crítico en dashboard:', error);
+        
+        ModalManager.createModal({
+            title: 'Error de Inicialización',
+            type: 'error',
+            content: `
+                <div class="init-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h4>No se pudo inicializar el dashboard</h4>
+                    <p>${error.message}</p>
+                    <div class="error-actions">
+                        <button class="btn btn-primary" id="retryInit">
+                            Reintentar
+                        </button>
+                        <button class="btn btn-secondary" id="logoutInit">
+                            Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            `
+        });
+        
+        document.getElementById('retryInit')?.addEventListener('click', () => {
+            ModalManager.hide();
+            this.init();
+        });
+        
+        document.getElementById('logoutInit')?.addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = '/';
+        });
+    }
+    
+    // Verificar notificaciones pendientes
+    async checkPendingNotifications() {
         try {
-            const savedTheme = localStorage.getItem('brk_theme');
-            const themePicker = document.querySelector('.theme__picker');
-            
-            if (savedTheme === 'light') {
-                document.body.classList.add('light-theme');
-                if (themePicker) {
-                    themePicker.classList.add('theme__picker-slide');
-                }
+            const response = await ApiClient.get('/api/notifications/pending');
+            if (response.count > 0) {
+                this.showNotificationBadge(response.count);
             }
         } catch (error) {
-            console.warn('⚠️ Error cargando tema:', error);
+            console.error('Error verificando notificaciones:', error);
         }
     }
     
-    logout() {
-        localStorage.removeItem('brk_token');
-        localStorage.removeItem('brk_user');
-        localStorage.removeItem('brk_theme');
-        
-        window.location.href = '/';
-    }
-    
-    showWelcomeMessage() {
-        const user = BRK_CONFIG.user;
-        if (user) {
-            const levelNames = {
-                'ma': 'Master',
-                'ad': 'Administrador',
-                'se': 'Secretario',
-                'su': 'Supervisor',
-                'co': 'Cobrador'
-            };
-            
-            const levelName = levelNames[user.level] || '';
-            const userName = user.fullName || user.username;
-            const message = `¡Bienvenido ${levelName} ${userName}!`;
-            
-            this.showNotification('success', message);
+    // Mostrar badge de notificaciones
+    showNotificationBadge(count) {
+        const badge = document.getElementById('notificationBadge');
+        if (badge) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'block';
         }
     }
     
-    showNotification(type, message) {
-        const elementId = type === 'success' ? 'message-approve' : 'message-error';
-        const element = document.getElementById(elementId);
-        
-        if (element) {
-            const textElement = element.querySelector('.notify__text-content');
-            if (textElement) {
-                textElement.textContent = message;
-                element.classList.add('show');
-                
-                setTimeout(() => {
-                    element.classList.remove('show');
-                }, 3000);
-            }
-        }
-    }
+    // Métodos de secciones específicas (simplificados)
     
-    showError(message) {
-        const mainView = document.getElementById('main-view');
-        if (!mainView) return;
-        
-        mainView.innerHTML = `
-            <div style="
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                height: calc(100vh - 100px);
-                padding: 40px;
-                text-align: center;
-                color: var(--text-gray);
-            ">
-                <div style="
-                    background: var(--background-color-two);
-                    padding: 30px;
-                    border-radius: 10px;
-                    max-width: 500px;
-                    width: 100%;
-                    box-shadow: var(--shadow-lg);
-                ">
-                    <h2 style="color: var(--error); margin-bottom: 20px;">
-                        ⚠️ Error
-                    </h2>
-                    <p style="margin-bottom: 25px; line-height: 1.5;">
-                        ${message}
-                    </p>
-                    <div style="display: flex; gap: 10px; justify-content: center;">
-                        <button onclick="location.reload()" class="generic-btn__text" style="width: auto;">
-                            🔄 Recargar
-                        </button>
-                        <button onclick="window.location.href='/'" class="generic-btn__text" 
-                                style="width: auto; background: var(--primary-color);">
-                            🔐 Ir al Login
+    async getClientsContent() {
+        return `
+            <section class="clients-section">
+                <div class="section-header">
+                    <h1>Gestión de Clientes</h1>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" id="addClientBtn">
+                            <i class="fas fa-plus"></i> Nuevo Cliente
                         </button>
                     </div>
                 </div>
-            </div>
+                <div id="clientsTable"></div>
+            </section>
         `;
+    }
+    
+    async getLoansContent() {
+        return `
+            <section class="loans-section">
+                <div class="section-header">
+                    <h1>Gestión de Préstamos</h1>
+                    <div class="section-actions">
+                        <button class="btn btn-primary" id="addLoanBtn">
+                            <i class="fas fa-plus"></i> Nuevo Préstamo
+                        </button>
+                    </div>
+                </div>
+                <div id="loansTable"></div>
+            </section>
+        `;
+    }
+    
+    async getPaymentsContent() {
+        return `
+            <section class="payments-section">
+                <div class="section-header">
+                    <h1>Gestión de Pagos</h1>
+                </div>
+                <div id="paymentsTable"></div>
+            </section>
+        `;
+    }
+    
+    async getReportsContent() {
+        return `
+            <section class="reports-section">
+                <div class="section-header">
+                    <h1>Reportes</h1>
+                </div>
+                <div class="reports-grid">
+                    <!-- Contenido de reportes -->
+                </div>
+            </section>
+        `;
+    }
+    
+    async getSettingsContent() {
+        return `
+            <section class="settings-section">
+                <div class="section-header">
+                    <h1>Configuración</h1>
+                </div>
+                <div id="settingsContainer"></div>
+            </section>
+        `;
+    }
+    
+    // Inicializar componentes de sección
+    initSectionComponents(sectionId) {
+        switch (sectionId) {
+            case 'clients':
+                this.initClientsSection();
+                break;
+            case 'loans':
+                this.initLoansSection();
+                break;
+            case 'payments':
+                this.initPaymentsSection();
+                break;
+            case 'settings':
+                Settings.renderSettingsUI();
+                break;
+        }
+    }
+    
+    // Inicializar sección de clientes
+    initClientsSection() {
+        TableManager.init('clientsTable', {
+            endpoint: Constants.ENDPOINTS.CLIENTS,
+            columns: Constants.TABLE_CONFIGS.CLIENTS.columns,
+            pageSize: 10,
+            showSearch: true,
+            showPagination: true,
+            actions: ['view', 'edit', 'delete'],
+            onEdit: (id) => {
+                Triggers.showClientForm(id);
+            },
+            onDelete: (id) => {
+                return ApiClient.deleteClient(id);
+            }
+        });
+        
+        document.getElementById('addClientBtn')?.addEventListener('click', () => {
+            Triggers.showClientForm();
+        });
+    }
+    
+    // Inicializar sección de préstamos
+    initLoansSection() {
+        TableManager.init('loansTable', {
+            endpoint: Constants.ENDPOINTS.LOANS,
+            columns: Constants.TABLE_CONFIGS.LOANS.columns,
+            pageSize: 10,
+            showSearch: true,
+            showPagination: true,
+            actions: ['view', 'edit', 'delete'],
+            onEdit: (id) => {
+                Triggers.showLoanForm(id);
+            },
+            onDelete: (id) => {
+                return ApiClient.delete(`/api/loans/${id}`);
+            }
+        });
+        
+        document.getElementById('addLoanBtn')?.addEventListener('click', () => {
+            Triggers.showLoanForm();
+        });
+    }
+    
+    // Inicializar sección de pagos
+    initPaymentsSection() {
+        TableManager.init('paymentsTable', {
+            endpoint: Constants.ENDPOINTS.PAYMENTS,
+            columns: [
+                { key: 'id', label: 'ID', sortable: true },
+                { key: 'cliente', label: 'Cliente', sortable: true },
+                { key: 'prestamo', label: 'Préstamo' },
+                { key: 'monto', label: 'Monto', sortable: true },
+                { key: 'fecha', label: 'Fecha', sortable: true },
+                { key: 'estado', label: 'Estado', sortable: true },
+                { key: 'acciones', label: 'Acciones' }
+            ],
+            pageSize: 10,
+            showSearch: true,
+            showPagination: true,
+            actions: ['view', 'edit']
+        });
+    }
+    
+    // Ver cliente
+    viewClient(id) {
+        ModalManager.createModal({
+            title: 'Detalles del Cliente',
+            size: 'lg',
+            content: `
+                <div class="client-details">
+                    <div class="loading-details">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando detalles...</p>
+                    </div>
+                </div>
+            `
+        });
+        
+        // Cargar datos del cliente
+        setTimeout(async () => {
+            try {
+                const client = await ApiClient.get(`/api/clients/${id}`);
+                
+                document.querySelector('.client-details').innerHTML = `
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Nombre:</label>
+                            <span>${client.nombre}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Documento:</label>
+                            <span>${client.documento}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Teléfono:</label>
+                            <span>${client.telefono}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Email:</label>
+                            <span>${client.email || 'No especificado'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Dirección:</label>
+                            <span>${client.direccion || 'No especificada'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Estado:</label>
+                            <span class="badge ${client.estado === 'activo' ? 'badge-success' : 'badge-danger'}">
+                                ${client.estado}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error cargando cliente:', error);
+                document.querySelector('.client-details').innerHTML = `
+                    <div class="error-details">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error cargando detalles del cliente</p>
+                    </div>
+                `;
+            }
+        }, 500);
+    }
+    
+    // Ver préstamo
+    viewLoan(id) {
+        ModalManager.createModal({
+            title: 'Detalles del Préstamo',
+            size: 'lg',
+            content: `
+                <div class="loan-details">
+                    <div class="loading-details">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando detalles...</p>
+                    </div>
+                </div>
+            `
+        });
+        
+        // Similar a viewClient, implementar según necesidad
+    }
+    
+    // Abrir modal
+    openModal(modalId) {
+        // Implementar según necesidad
+    }
+    
+    // Mostrar sección
+    showSection(sectionId) {
+        this.navigateTo(sectionId, `#${sectionId}`);
     }
 }
 
-// ===========================================
-// FUNCIONES GLOBALES
-// ===========================================
-window.showNotification = (type, message) => {
-    const elementId = type === 'success' ? 'message-approve' : 'message-error';
-    const element = document.getElementById(elementId);
-    
-    if (element) {
-        const textElement = element.querySelector('.notify__text-content');
-        if (textElement) {
-            textElement.textContent = message;
-            element.classList.add('show');
-            
-            setTimeout(() => {
-                element.classList.remove('show');
-            }, 3000);
-        }
-    }
-};
+// Instancia global del dashboard
+const dashboard = new Dashboard();
 
-// ===========================================
-// INICIALIZACIÓN
-// ===========================================
+// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('📄 DOM cargado, iniciando dashboard...');
-    
-    const token = localStorage.getItem('brk_token');
-    const userData = localStorage.getItem('brk_user');
-    
-    if (!token || !userData) {
-        console.warn('❌ No autenticado, redirigiendo...');
-        window.location.href = '/';
-        return;
-    }
-    
-    try {
-        window.dashboard = new DashboardManager();
-        window.dashboard.initialize();
-        
-    } catch (error) {
-        console.error('❌ Error crítico inicializando dashboard:', error);
-        
-        const errorDiv = document.createElement('div');
-        errorDiv.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--background-color);
-            color: var(--error);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000000;
-            padding: 20px;
-            text-align: center;
-        `;
-        errorDiv.innerHTML = `
-            <h2>❌ Error Crítico</h2>
-            <p>${error.message}</p>
-            <button onclick="location.reload()" class="generic-btn__text" style="width: auto; margin-top: 20px;">
-                Recargar Página
-            </button>
-        `;
-        document.body.appendChild(errorDiv);
-    }
+    dashboard.init();
 });
 
-window.addEventListener('error', (event) => {
-    console.error('Error global:', event.error);
-    showNotification('error', 'Ocurrió un error inesperado');
-});
+// Exportar para uso global
+window.dashboard = dashboard;

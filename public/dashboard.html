@@ -1,175 +1,147 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google" content="notranslate">
-    <meta name="description" content="Dashboard BRK Software - Sistema de Gestión de Préstamos">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/dashboard.css">
-    
-    <!-- Favicon -->
+    <title>BRK Software - Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/modal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/svg+xml" href="/assets/logo-original.svg">
-    
-    <title>BRK SOFTWARE - Dashboard</title>
-    
-    <style>
-        /* Estilos iniciales del loader */
-        .main-loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #1e212a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999999;
-        }
-        
-        .e-loadholder {
-            text-align: center;
-        }
-        
-        .m-loader {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #2ac294;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        .e-text {
-            color: #2ac294;
-            font-size: 1rem;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
 </head>
-
-<body translate="no">
-    <!-- Notificaciones -->
-    <div class="toolbar-notifications">
-        <div id="message-approve" class="toolbar-notifications__text-container">
-            <p class="notify__text-content"></p>
-            <span class="palomita">✓</span>
-        </div>
-        <div id="message-error" class="toolbar-notifications__text-container">
-            <p class="notify__text-content"></p>
-            <span class="palomita">✕</span>
-        </div>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
     </div>
 
-    <!-- Contenido principal -->
-    <main class="main-section">
-        <!-- Loader inicial -->
-        <div class="main-loader">
-            <div class="e-loadholder">
-                <div class="m-loader"></div>
-                <div class="e-text">Cargando dashboard...</div>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="/assets/logo-original.svg" alt="BRK Software Logo" class="sidebar-logo">
+            <h2>BRK Software</h2>
+        </div>
+        
+        <div class="sidebar-menu" id="sidebarMenu">
+            <!-- Menú cargado dinámicamente -->
+        </div>
+        
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <img src="/assets/user.svg" alt="Usuario" class="user-avatar" id="userAvatar">
+                <div class="user-info">
+                    <span class="user-name" id="userName">Cargando...</span>
+                    <span class="user-role" id="userRole">Administrador</span>
+                </div>
             </div>
+            <button class="btn-logout" id="btnLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <header class="main-header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="header-actions">
+                <div class="search-container">
+                    <input type="text" class="search-input" id="globalSearch" placeholder="Buscar...">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                
+                <button class="theme-toggle" id="themeToggle">
+                    <img src="/assets/sun.svg" alt="Modo Claro" class="theme-icon sun">
+                    <img src="/assets/moon.svg" alt="Modo Oscuro" class="theme-icon moon">
+                </button>
+                
+                <button class="btn-notifications" id="btnNotifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationBadge">0</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <div class="content-area" id="contentArea">
+            <!-- Dashboard por defecto -->
+            <section class="dashboard-section">
+                <div class="dashboard-header">
+                    <h1 class="dashboard-title">Dashboard Principal</h1>
+                    <p class="dashboard-subtitle">Bienvenido al sistema de gestión BRK Software</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Cargado dinámicamente -->
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="content-grid">
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-users"></i> Gestión de Clientes</h3>
+                            <button class="btn-add" id="btnAddClient">
+                                <i class="fas fa-plus"></i> Nuevo
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="clientsTableContainer">
+                                <!-- Tabla de clientes -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-hand-holding-usd"></i> Préstamos Activos</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="loansTableContainer">
+                                <!-- Tabla de préstamos -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <div class="light-layout"></div>
-
-        <!-- Contenedor principal -->
-        <div class="container">
-            <!-- Menú hamburguesa -->
-            <button class="hamburguer-menu hover-item">
-                <span class="hamburguer-menu__line line-one"></span>
-                <span class="hamburguer-menu__line line-two"></span>
-                <span class="hamburguer-menu__line line-three"></span>
-            </button>
-
-            <!-- Menú lateral -->
-            <section class="menu">
-                <div class="light-layout"></div>
-                <div class="menu-backdrop"></div>
-                <nav class="menu-nav">
-                    <div class="menu-nav__logo">
-                        <img class="menu-nav__logo-img" src="/assets/logo-original.svg" alt="BRK Software" 
-                             onerror="this.src='/assets/lupa.svg'">
-                    </div>
-                    <ul class="menu-nav__list" id="menu-nav-list">
-                        <!-- Menú dinámico se cargará con JavaScript -->
-                    </ul>
-                </nav>
-            </section>
-
-            <!-- Contenido principal -->
-            <section class="main-content">
-                <!-- Barra superior usuario -->
-                <div class="menu-user">
-                    <ul class="menu-user__items">
-                        <li class="menu-user__item menu-user-clock">
-                            <span id="reloj" class="menu-user-clock__content">--:--:--</span>
-                        </li>
-                        <li class="menu-user__item hover-item button exitSystem closeMain" title="Salir del sistema">
-                            <svg class="menu-user__icon" viewBox="0 0 24 24">
-                                <path fill="currentColor" d="M16 17v-3H9v-4h7V7l5 5l-5 5M14 2a2 2 0 0 1 2 2v2h-2V4H5v16h9v-2h2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9z"/>
-                            </svg>
-                        </li>
-                        <li class="menu-user__item hover-item button refreshPage click_logo" title="Actualizar página">
-                            <svg class="menu-user__icon" viewBox="0 0 24 24">
-                                <path fill="currentColor" d="M17.65 6.35A7.958 7.958 0 0 0 12 4a8 8 0 0 0-8 8a8 8 0 0 0 8 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18a6 6 0 0 1-6-6a6 6 0 0 1 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                            </svg>
-                        </li>
-                        <li class="menu-user__item hover-item button menu-user-settings" title="Configuración de usuario">
-                            <span class="menu-user__name" id="user-name">Usuario</span>
-                            <span class="arrow-down">
-                                <svg class="arrow-down-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-                                    <g transform="rotate(180 512 512)">
-                                        <path fill="currentColor" d="M104.704 685.248a64 64 0 0 0 90.496 0l316.8-316.8l316.8 316.8a64 64 0 0 0 90.496-90.496L557.248 232.704a64 64 0 0 0-90.496 0L104.704 594.752a64 64 0 0 0 0 90.496z"/>
-                                    </g>
-                                </svg>
-                            </span>
-                            <img id="fotoperfil" class="menu-user__img" src="/assets/user.svg" alt="Usuario" 
-                                 onerror="this.src='/assets/user.svg'">
-                            <ul class="menu-user__settings-nav">
-                                <li class="menu-user__settings-item hover-item button changePass">Cambiar contraseña</li>
-                                <li class="menu-user__settings-item hover-item switch-theme button">
-                                    <div class="theme__btn">
-                                        <img class="theme__icon" src="/assets/sun.svg" alt="Tema claro">
-                                        <img class="theme__icon" src="/assets/moon.svg" alt="Tema oscuro">
-                                        <div class="theme__picker"></div>
-                                    </div>
-                                </li>
-                                <li class="menu-user__settings-item hover-item button closeMain">Cerrar Sesión</li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Vista principal -->
-                <div class="main-view" id="main-view">
-                    <!-- Contenido dinámico se cargará aquí -->
-                </div>
-            </section>
+        <!-- Chat Widget -->
+        <div class="chat-widget" id="chatWidget">
+            <div class="chat-header">
+                <h4><i class="fas fa-comments"></i> Chat</h4>
+                <button class="chat-toggle" id="chatToggle">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <div class="chat-body" id="chatBody">
+                <!-- Mensajes de chat -->
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="Escribe un mensaje...">
+                <button id="sendChat"><i class="fas fa-paper-plane"></i></button>
+            </div>
         </div>
     </main>
 
+    <!-- Modal Container -->
+    <div id="modalContainer"></div>
+
     <!-- Scripts -->
-    <script src="js/dashboard.js" defer></script>
-    
-    <!-- Configuración inicial -->
-    <script>
-        // Configuración global del dashboard
-        window.dashboardConfig = {
-            apiUrl: '/api',
-            features: {
-                chat: true,
-                maps: false,
-                notifications: true
-            }
-        };
-    </script>
+    <script src="/js/utils/Constants.js"></script>
+    <script src="/js/utils/Helpers.js"></script>
+    <script src="/js/core/ApiClient.js"></script>
+    <script src="/js/core/ModalManager.js"></script>
+    <script src="/js/core/TableManager.js"></script>
+    <script src="/js/core/FormManager.js"></script>
+    <script src="/js/core/TemplateManager.js"></script>
+    <script src="/js/modules/Triggers.js"></script>
+    <script src="/js/modules/Chats.js"></script>
+    <script src="/js/modules/Settings.js"></script>
+    <script src="/js/dashboard.js"></script>
 </body>
 </html>
